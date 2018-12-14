@@ -1,8 +1,8 @@
 import time
 
 beginning_time = time.time()
-with open("input.txt") as input:
-    contents_array = input.read().split()
+with open("input.txt") as task_input:
+    contents_array = task_input.read().split()
     running_total = 0
     frequencies = set()
     frequencies.add(0)

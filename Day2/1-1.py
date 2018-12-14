@@ -1,23 +1,24 @@
 def main():
-    with open("input.txt") as input:
-        codes_array = input.read().split()
+    with open("input.txt") as task_input:
+        codes_array = task_input.read().split()
         twos = threes = 0
         for code in codes_array:
-            currentTwos, currentThrees = getTwosAndThrees(code)
-            twos += int(currentTwos)
-            threes += int(currentThrees)
+            current_twos, current_threes = get_twos_and_threes(code)
+            twos += int(current_twos)
+            threes += int(current_threes)
         print("Checksum:", twos*threes)
 
-def getTwosAndThrees(line):
-    hashset = {}
-    twosExist = threesExist = False
+
+def get_twos_and_threes(line):
+    word_map = {}
     for char in line:
-        if char in hashset:
-            hashset[char] += 1
+        if char in word_map:
+            word_map[char] += 1
         else:
-            hashset[char] = 1
-    values = hashset.values()
+            word_map[char] = 1
+    values = word_map.values()
     return int(2 in values), int(3 in values)
+
 
 if __name__ == '__main__':
     main()
