@@ -27,6 +27,7 @@ def tests():
     assert ([88, 99] == root.children[1].metadata)
     assert ([16, 67] == root.metadata)
     assert (66 + 77 + 11 + 22 + 33 + 88 + 99 + 16 + 67 == calculate_tree_metadata_sum(root))
+    assert (0 == root.get_value())
 
 
 def main():
@@ -35,6 +36,8 @@ def main():
         root, new_index = read_tree(content_array, 0)
         metadata_sum = calculate_tree_metadata_sum(root)
         print("Part 1 answer:", metadata_sum)
+        overall_value = root.get_value()
+        print("Part 2 answer:", overall_value)
 
 
 if __name__ == "__main__":
