@@ -1,4 +1,5 @@
 import re
+from operator import attrgetter
 
 from Day7.classes import Node
 
@@ -15,14 +16,6 @@ def tests():
     assert ({"before": "X", "after": "M"} ==
             string_to_dict("Step X must be finished before step M can begin.",
                            "Step {before} must be finished before step {after} can begin."))
-    # assert(find_in_flows(2, Node("3", None)) is None)
-    # assert(find_in_flows(3, None) is None)
-    # assert(Node("X", child=Node("M"))) == find_in_flows("X", Node("X", child=Node("M")))
-    # assert (Node("M") == find_in_flows("M", Node("X", child=Node("M"))))
-    # assert (Node("Y") == find_in_flows("Y", Node("X", child=Node("M", child=Node("Y")))))
-    # flow = Node("X", child=Node("M", child=Node("Y")))
-    # flow.add_child(Node("A"))
-    # assert (Node("A") == find_in_flows("A", flow))
 
 
 def extract_before_and_after_from_string(line):
@@ -52,10 +45,6 @@ def have_not_seen_before(before, after, prev):
 #             return found
 
 
-def get_by_value(value, nodes):
-    return nodes[value] if value in nodes else None
-
-
 def main():
     with open("input.txt") as task_input:
         content_array = task_input.read().split("\n")
@@ -71,8 +60,8 @@ def main():
                 nodes[before_value] = before
                 nodes[after_value] = after
             else:
-                before_node = get_by_value(before_value, nodes)
-                after_node = get_by_value(after_value, nodes)
+                before_node = nodes[before_value] if before_value in nodes else None
+                after_node = nodes[after_value] if after_value in nodes else None
                 if before_node and after_node:
                     common_parents = set(before_node.parents).intersection(after_node.parents)
                     for common_parent in common_parents:
@@ -92,12 +81,31 @@ def main():
                     nodes[after_value] = after_node
                     after_node.add_parent(before_node)
                     before_node.add_child(after_node)
-        print("DONE READING")
-        beginning_nodes = [node for node in nodes if len(nodes[node].parents) == 0]
-        beginning_nodes.sort()
-        print(beginning_nodes)
-        print(beginning_nodes[0])
-        print(nodes[beginning_nodes[0]])
+        print_steps(nodes)
+
+
+def is_available(child, prev):
+    return all([parent.value in prev for parent in child.parents])
+
+
+def print_steps(nodes):
+    available = set([nodes[node] for node in nodes if len(nodes[node].parents) == 0])
+    steps = []
+    while(len(available)) > 0:
+        print("available", available)
+        next_node = choose_next_from_available(available)
+        print(next_node.value)
+        steps.append(next_node.value)
+        for child in next_node.children:
+            # only add the child if all is parents are in steps
+            if is_available(child, steps):
+                available.add(child)
+        available.remove(next_node)
+    print("".join(steps))
+
+
+def choose_next_from_available(nodes):
+    return min(nodes, key=attrgetter('value'))
 
 
 if __name__ == "__main__":

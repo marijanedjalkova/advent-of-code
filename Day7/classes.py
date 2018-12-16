@@ -40,9 +40,12 @@ class Node:
         return (self == other) and len(self.children) == len(other.children) and not any(
             [this_child != that_child for (this_child, that_child) in zip(self.children, other.children)])
 
+    # def __repr__(self):
+    #     self.children.sort(key=lambda x: x.value)
+    #     return "[{}] => {}".format(self.value, self.children[0] if len(self.children) > 0 else "")
+
     def __repr__(self):
-        self.children.sort(key=lambda x: x.value)
-        return "[{}] => {}".format(self.value, self.children[0] if len(self.children) > 0 else "")
+        return self.value
 
     def __hash__(self):
         return hash(self.value)
