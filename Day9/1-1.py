@@ -18,7 +18,7 @@ def put_next(circle, current_index, next_number):
         if new_index >= len(circle) + 1:
             new_index -= len(circle)
         circle.insert(new_index, next_number)
-        return circle, new_index, 0
+        return new_index, 0
     # number is multiple of 23
     score_increase = next_number
     remove_index = get_counter_clockwise(circle, current_index, 7)
@@ -26,35 +26,41 @@ def put_next(circle, current_index, next_number):
     score_increase += marble_to_remove
     circle.remove(marble_to_remove)
     new_index = remove_index if remove_index < len(circle) else 0
-    return circle, new_index, score_increase
+    return new_index, score_increase
 
 
 def tests():
     assert is_multiple_of(46, 23)
     assert not is_multiple_of(5, 2)
-    assert ([0, 2, 1], 1, 0) == put_next([0, 1], 1, 2)
-    assert ([0, 2, 1, 3], 3, 0) == put_next([0, 2, 1], 1, 3)
-    assert ([0, 4, 2, 1, 3], 1, 0) == put_next([0, 2, 1, 3], 3, 4)
+    assert (1, 0) == put_next([0, 1], 1, 2)
+    assert (3, 0) == put_next([0, 2, 1], 1, 3)
+    assert (1, 0) == put_next([0, 2, 1, 3], 3, 4)
     assert 2 == get_counter_clockwise([1, 2, 3], 0, 1)
     assert 0 == get_counter_clockwise([1, 2, 3], 1, 1)
-    assert ([0, 2, 3, 4, 5, 6, 7], 1, 24) == put_next([0, 1, 2, 3, 4, 5, 6, 7], 0, 23)
+    assert (1, 24) == put_next([0, 1, 2, 3, 4, 5, 6, 7], 0, 23)
+
+
+def do_game(num_players, num_rounds):
+    scores = {player: 0 for player in range(num_players)}
+    circle = [0]
+    current_index = 0
+    next_number = 1
+    for a_round in range(num_rounds):
+        new_index, score_increase = put_next(circle, current_index, next_number)
+        current_index = new_index
+        scores[a_round % num_players] += score_increase
+        next_number += 1
+    return scores
 
 
 def main():
     with open("input.txt") as task_input:
         contents = task_input.read()
         num_players, num_rounds = get_input_data_from_input_string(contents)
-        scores = {player: 0 for player in range(num_players)}
-        circle = [0]
-        current_index = 0
-        next_number = 1
-        for a_round in range(num_rounds):
-            circle, new_index, score_increase = put_next(circle, current_index, next_number)
-            current_index = new_index
-            scores[a_round % num_players] += score_increase
-            next_number += 1
+        scores = do_game(num_players, num_rounds)
         answer = max(scores.values())
         print("Answer to part 1:", answer)
+        assert (398048 == answer)
 
 
 def get_input_data_from_input_string(contents):
