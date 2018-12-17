@@ -77,7 +77,7 @@ def main():
         answer = max(scores.values())
         print("Answer to part 1:", answer)
         assert (398048 == answer)
-        scores = do_game(num_players, num_rounds * 100, put_next_improved, True)
+        scores = do_game(num_players, num_rounds * 100)
         answer = max(scores.values())
         print("Answer to part 2:", answer)
         assert (3180373421 == answer)
