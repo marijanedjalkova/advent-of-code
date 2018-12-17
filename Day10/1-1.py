@@ -1,10 +1,18 @@
 import re
+import sys
 
 from Day10.classes import Point
 
 
 def tests():
-    pass
+    point = Point(0, 1, -2, +3)
+    assert (-2, 4) == point.get_pos_at_time(1)
+    assert (0, 1) == point.get_pos_at_time(0)
+    point2 = Point(1, 2, -2, -3)
+    point3 = Point(2, 3, 0, 0)
+    point4 = Point(1, 1, 0, 0)
+    assert "##.\n.#.\n..#" == draw_map([point, point2, point3, point4])
+    assert ".#...\n.....\n...#.\n.....\n....#\n#...." == draw_map([point, point2, point3, point4], 1)
 
 
 def string_to_dict(string, pattern):
@@ -15,26 +23,45 @@ def string_to_dict(string, pattern):
     return _dict
 
 
-def draw_map(points, time=0):
-    min_x = min(points, key=lambda p: p.get_pos_at_time(time).x).x
-    max_x = max(points, key=lambda p: p.get_pos_at_time(time).x).x
-    min_y = min(points, key=lambda p: p.get_pos_at_time(time).x).y
-    max_y = max(points, key=lambda p: p.get_pos_at_time(time).x).y
-    # -10406 53399 -10506 53298
-    drawn = {}
+def get_points_map(points, time):
+    point_map = {}
     for point in points:
-        if point.x in drawn:
-            drawn[point.x].add(point.y)
+        x, y = point.get_pos_at_time(time)
+        if x in point_map:
+            point_map[x].add(y)
         else:
-            drawn[point.x] = set(point.y)
-    for y in range(min_y, max_y):
+            point_map[x] = set()
+            point_map[x].add(y)
+    return point_map
+
+
+def map_to_drawing(pt_map):
+    sz, min_max_values = get_map_size(point_map=pt_map)
+    drawing = ""
+    for y in range(min_max_values["min_y"], min_max_values["max_y"] + 1):
         row = ""
-        for x in range(min_x, max_x):
-            if x in drawn and y in drawn[x]:
+        for x in range(min_max_values["min_x"], min_max_values["max_x"] + 1):
+            if x in pt_map and y in pt_map[x]:
                 row += "#"
             else:
                 row += "."
-        print(row)
+        drawing += row + "\n"
+    return drawing[:-1]
+
+
+def draw_map(points, time=0):
+    point_map = get_points_map(points, time)
+    return map_to_drawing(point_map)
+
+
+def get_map_size(points=None, point_map=None, time=0):
+    if point_map is None:
+        point_map = get_points_map(points, time)
+    min_x = min(point_map)
+    max_x = max(point_map)
+    min_y = min(min(point_map[x]) for x in point_map)
+    max_y = max(max(point_map[x]) for x in point_map)
+    return (max_x - min_x) * (max_y - min_y), {"max_x": max_x, "min_x": min_x, "max_y": max_y, "min_y": min_y}
 
 
 def main():
@@ -44,9 +71,20 @@ def main():
         for line in contents:
             line = "".join(line.split())
             data_map = string_to_dict(line.strip(), "position=<{x_pos},{y_pos}>velocity=<{x_v},{y_v}>")
-            points.append(Point(int(data_map["x_pos"]), int(data_map["y_pos"]), int(data_map["x_v"]), int(data_map["y_v"])))
+            points.append(
+                Point(int(data_map["x_pos"]), int(data_map["y_pos"]), int(data_map["x_v"]), int(data_map["y_v"])))
         print("Read all the data")
-        draw_map(points)
+        min_time = 0
+        min_size = sys.maxsize
+        for i in range(20000):
+            size, _ = get_map_size(points, time=i)
+            if size < min_size:
+                min_size = size
+                min_time = i
+        print("Time it would take to appear:", min_time)
+        assert (549 == min_size)
+        assert (10634 == min_time)
+        print(draw_map(points, min_time))
 
 
 if __name__ == "__main__":
