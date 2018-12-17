@@ -12,21 +12,26 @@ def get_counter_clockwise(circle, current_index, how_many):
     return new_index
 
 
+def get_new_index(current_index, current_length, diff):
+    new_index = current_index + diff
+    if new_index >= current_length + 1:
+        new_index -= current_length
+    return new_index
+
+
 def put_next(circle, current_index, next_number):
     if not is_multiple_of(next_number, 23):
-        new_index = current_index + 2
-        if new_index >= len(circle) + 1:
-            new_index -= len(circle)
+        new_index = get_new_index(current_index, len(circle), 2)
+        if next_number % 23 == 19:
+            return get_new_index(current_index, len(circle), 1), 0
         circle.insert(new_index, next_number)
+        if next_number % 23 == 18:
+            old_value = circle[new_index + 1]
+            circle[new_index + 1] = next_number + 1
+            return new_index, old_value
         return new_index, 0
-    # number is multiple of 23
-    score_increase = next_number
-    remove_index = get_counter_clockwise(circle, current_index, 7)
-    marble_to_remove = circle[remove_index]
-    score_increase += marble_to_remove
-    circle.remove(marble_to_remove)
-    new_index = remove_index if remove_index < len(circle) else 0
-    return new_index, score_increase
+    new_index = get_counter_clockwise(circle, current_index, 6)
+    return new_index, next_number
 
 
 def tests():
@@ -37,7 +42,6 @@ def tests():
     assert (1, 0) == put_next([0, 2, 1, 3], 3, 4)
     assert 2 == get_counter_clockwise([1, 2, 3], 0, 1)
     assert 0 == get_counter_clockwise([1, 2, 3], 1, 1)
-    assert (1, 24) == put_next([0, 1, 2, 3, 4, 5, 6, 7], 0, 23)
 
 
 def do_game(num_players, num_rounds):
@@ -47,10 +51,22 @@ def do_game(num_players, num_rounds):
     next_number = 1
     for a_round in range(num_rounds):
         new_index, score_increase = put_next(circle, current_index, next_number)
+        if next_number % 23 == 18:
+            assign_to_23rd(scores, score_increase, a_round, num_players)
+            current_index = new_index
+            next_number += 1
+            continue
         current_index = new_index
         scores[a_round % num_players] += score_increase
         next_number += 1
     return scores
+
+
+def assign_to_23rd(scores, score_increase, a_round, num_players):
+    index = a_round % num_players + 5
+    if index >= num_players:
+        index -= num_players
+    scores[index] += score_increase
 
 
 def main():
@@ -61,6 +77,10 @@ def main():
         answer = max(scores.values())
         print("Answer to part 1:", answer)
         assert (398048 == answer)
+        scores = do_game(num_players, num_rounds * 100, put_next_improved, True)
+        answer = max(scores.values())
+        print("Answer to part 2:", answer)
+        assert (3180373421 == answer)
 
 
 def get_input_data_from_input_string(contents):
