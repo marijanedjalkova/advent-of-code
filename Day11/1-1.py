@@ -32,12 +32,12 @@ def get_square_at(x, y, existing_cells, existing_squares, power_map, size=3):
         new_sum = power_map[x][y]
         existing_square_cells = existing_squares[x][y]
         for delta in range(size - 1):
-            add_cell(x + delta, size, existing_cells, existing_square_cells)
-            new_sum += get_power_level(x + delta, size)
-            add_cell(size, y + delta, existing_cells, existing_square_cells)
-            new_sum += get_power_level(size, y + delta)
-        add_cell(size, size, existing_cells, existing_square_cells)
-        new_sum += get_power_level(size, size)
+            add_cell(x + delta, y + size - 1, existing_cells, existing_square_cells)
+            new_sum += get_power_level(x + delta, y + size - 1)
+            add_cell(x + size - 1, y + delta, existing_cells, existing_square_cells)
+            new_sum += get_power_level(x + size - 1, y + delta)
+        add_cell(x + size - 1, y + size - 1, existing_cells, existing_square_cells)
+        new_sum += get_power_level(x + size - 1, y + size - 1)
         power_map[x][y] = new_sum
         return existing_square_cells, new_sum
     existing_square_cells = []
@@ -62,8 +62,8 @@ def get_top_corner(max_square):
 def get_max_square_of_size(size, existing_cells, existing_squares, power_map):
     max_power = 0
     max_square = None
-    for x in range(1, 301 - size):
-        for y in range(1, 301 - size):
+    for x in range(1, 301 - size + 1):
+        for y in range(1, 301 - size + 1):
             square, power = get_square_at(x, y, existing_cells, existing_squares, power_map, size)
             if power > max_power:
                 max_power = power
@@ -84,15 +84,15 @@ def main():
     top_corner = None
     max_size = 0
     for i in range(1, 301):
-        print(i, max_power, max_size, top_corner)
         corner, power = get_max_square_of_size(i, existing_cells, existing_squares, power_map)
         if power > max_power:
             max_power = power
             top_corner = corner
             max_size = i
     print("Answer for part2:", top_corner[0], ",", top_corner[1], ",", max_size)
-    # not 278,114,49
-    # not 278,114,7
+    assert max_size == 12
+    assert top_corner[0] == 232
+    assert top_corner[1] == 251
 
 
 if __name__ == "__main__":
