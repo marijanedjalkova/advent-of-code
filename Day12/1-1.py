@@ -19,15 +19,11 @@ def tests():
 
 
 def get_row_sum(row, left_most_coord):
-    res = 0  # False, True, False , -2 but we want 0, 1, 2
+    res = 0
     for i in range(len(row)):
         if row[i] is True:
             res += (i + left_most_coord)
     return res
-
-
-def take_five(row, i):
-    return [row[c] for c in range(i - 2, i + 3)]
 
 
 def process_boolean_5(five_values, rules):
@@ -36,30 +32,15 @@ def process_boolean_5(five_values, rules):
 
 
 def get_next_gen(boolean_row, left_most, rules):
-    """
-    add 4 dots on either side of the input;
-    (only 2 will be affected at most but for the leftmost of the two to be affected, need two more);
-    move the left-most-coord by -4;
-    map input to output for range(row[2:-1]);
-    record how many empty spaces at the beginning => e;
-    trim the spaces at the beginning and the end;
-    move the left-most-coord by +e;
-    return the output together with the left-most-coord
-    """
     boolean_row.extendleft([False] * 4)
     boolean_row.extend([False] * 4)
-    # we have ....blah....
     result_booleans = deque()
-    for i in range(2, len(boolean_row) - 2):  # for every one that might change
-        boolean_row.rotate(2-i)
-        current_five = []
-        for j in range(5):
-            current_five.append(boolean_row.popleft())
+    boolean_row.rotate(1)  # to cancel the very first rotation
+    for i in range(len(boolean_row) - 4):  # for every one that might actually change
+        boolean_row.rotate(-1)
+        current_five = [boolean_row.popleft() for i in range(5)]
         boolean_row.extendleft(reversed(current_five))
-        boolean_row.rotate(i-2)
         result_booleans.append(process_boolean_5(current_five, rules))
-    # print("NEW", len(result_booleans))
-    # print(result_booleans)
     left_most -= 2  # because we only actually processed 2 of each 4 pads
     empty_spaces = 0
     while result_booleans[0] is False:
@@ -80,14 +61,10 @@ def row_to_str(row):
 
 
 def get_final_sum(num_generations, row, rules):
-    boolean_row = parse_str(row)
+    boolean_row = deque(parse_str(row))
     left_most_coord = 0
-    # print(0, 0, "".join(row))
     for i in range(num_generations):
-        if i % 10000 == 0:
-            print(i)
         boolean_row, left_most_coord = get_next_gen(boolean_row, left_most_coord, rules)
-        # print(i+1, left_most_coord, row_to_str(boolean_row))
     return get_row_sum(boolean_row, left_most_coord)
 
 
@@ -108,8 +85,6 @@ def main():
     result_sum = get_final_sum(20, task_input, rules)
     print("Answer for part1", result_sum)
     assert 2736 == result_sum
-    result_sum2 = get_final_sum(50000000000, task_input, rules)
-    print("Answer for part2", result_sum2)
 
 
 if __name__ == "__main__":
