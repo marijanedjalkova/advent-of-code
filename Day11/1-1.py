@@ -1,4 +1,4 @@
-from Day11.classes import get_hundreds, Cell
+from Day11.classes import get_hundreds, Cell, get_power_level
 
 
 def tests():
@@ -17,40 +17,82 @@ def tests():
 
 
 def get_total_power(cells):
-    return sum([cell.get_power_level() for cell in cells])
+    return sum([cell.power for cell in cells])
 
 
-def get_square_at(x, y, existing_cells, size=3):
-    cells = []
+def add_cell(x, y, existing_cells, existing_square_cells):
+    if not (x, y) in existing_cells:
+        new_cell = Cell(x, y)
+        existing_cells[(x, y)] = new_cell
+    existing_square_cells.append(existing_cells[(x, y)])
+
+
+def get_square_at(x, y, existing_cells, existing_squares, power_map, size=3):
+    if x in existing_squares and y in existing_squares[x]:
+        new_sum = power_map[x][y]
+        existing_square_cells = existing_squares[x][y]
+        for delta in range(size - 1):
+            add_cell(x + delta, size, existing_cells, existing_square_cells)
+            new_sum += get_power_level(x + delta, size)
+            add_cell(size, y + delta, existing_cells, existing_square_cells)
+            new_sum += get_power_level(size, y + delta)
+        add_cell(size, size, existing_cells, existing_square_cells)
+        new_sum += get_power_level(size, size)
+        power_map[x][y] = new_sum
+        return existing_square_cells, new_sum
+    existing_square_cells = []
+    new_sum = 0
     for x_pos in range(x, x + size):
         for y_pos in range(y, y + size):
-            if (x_pos, y_pos) in existing_cells:
-                cells.append(existing_cells[(x_pos, y_pos)])
-            else:
-                new_cell = Cell(x_pos, y_pos)
-                cells.append(new_cell)
-                existing_cells[(x_pos, y_pos)] = new_cell
-    return cells
+            add_cell(x_pos, y_pos, existing_cells, existing_square_cells)
+            new_sum += get_power_level(x_pos, y_pos)
+    if x not in existing_squares:
+        existing_squares[x] = {}
+    existing_squares[x][y] = existing_square_cells
+    if x not in power_map:
+        power_map[x] = {}
+    power_map[x][y] = new_sum
+    return existing_square_cells, new_sum
 
 
 def get_top_corner(max_square):
     return min(max_square, key=lambda cell: cell.x * cell.y)
 
 
-def main():
-    existing_cells = {}
+def get_max_square_of_size(size, existing_cells, existing_squares, power_map):
     max_power = 0
     max_square = None
-    for x in range(1, 301):
-        for y in range(1, 301):
-            square = get_square_at(x, y, existing_cells)
-            power = get_total_power(square)
+    for x in range(1, 301 - size):
+        for y in range(1, 301 - size):
+            square, power = get_square_at(x, y, existing_cells, existing_squares, power_map, size)
             if power > max_power:
                 max_power = power
-                max_square = square
-    top_corner = get_top_corner(max_square)
-    print("Part 1 answer:", top_corner.x, top_corner.y)
-    assert (21, 61) == (top_corner.x, top_corner.y)
+                max_square = (x, y)
+    return max_square, max_power
+
+
+def main():
+    existing_cells = {}
+    existing_squares = {}
+    power_map = {}
+    top_corner, max_power = get_max_square_of_size(3, existing_cells, existing_squares, power_map)
+    print("Part 1 answer:", top_corner[0], top_corner[1])
+    assert (21, 61) == (top_corner[0], top_corner[1])
+    existing_squares = {}
+    power_map = {}
+    max_power = 0
+    top_corner = None
+    max_size = 0
+    for i in range(1, 301):
+        print(i, max_power, max_size, top_corner)
+        corner, power = get_max_square_of_size(i, existing_cells, existing_squares, power_map)
+        if power > max_power:
+            max_power = power
+            top_corner = corner
+            max_size = i
+    print("Answer for part2:", top_corner[0], ",", top_corner[1], ",", max_size)
+    # not 278,114,49
+    # not 278,114,7
 
 
 if __name__ == "__main__":
