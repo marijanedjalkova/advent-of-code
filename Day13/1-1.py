@@ -62,7 +62,6 @@ def read_in_input(filename):
     road_map = {}
     carts = []
     max_x = 0
-    max_y = 0
     with open(filename) as text_input:
         contents = text_input.read().split("\n")
         row = 0
@@ -89,18 +88,26 @@ def place_carts(road_map, carts):
 
 
 def print_map(road_map, carts, max_x, max_y):
+    msg = None
     for row_pos in range(max_y):
         row = ""
         for col_pos in range(max_x):
             road_char = road_map[col_pos][row_pos]
             maybe_cart = list(filter(lambda cart: cart.x == col_pos and cart.y == row_pos, carts))
-            if len(maybe_cart) > 0:
+            if len(maybe_cart) == 1:
                 row += maybe_cart[0].direction
+            elif len(maybe_cart) > 1:
+                row += "X"
+                msg = ("COLLISION AT ", col_pos, row_pos)
             elif road_char is None:
                 row += " "
             else:
                 row += road_char
         print(row)
+    if msg:
+        print(msg)
+        return msg[1:]
+    return None
 
 
 def find_collisions(filename):
@@ -108,21 +115,23 @@ def find_collisions(filename):
     place_carts(road_map, carts)
     print_map(road_map, carts, max_x, max_y)
     collisions = None
-    # counter = 0
-    # while collisions is None:
-    #     print(counter)
-    #     tick(road_map, carts)
-    #     print_map(road_map, carts)
-    #     collisions = check_collision(carts)
-    #     counter += 1
+    counter = 0
+    while collisions is None:
+        print(counter)
+        tick(road_map, carts)
+        collisions = check_collision(carts)
+        if collisions:
+            return collisions
+        counter += 1
     return collisions
 
 
 def main():
     collisions = find_collisions("input.txt")
-    # not 107,95
+    print("Answer to part 1", collisions)
+    assert 8, 9 == collisions
 
 
 if __name__ == "__main__":
     tests()
-    # main()
+    main()
