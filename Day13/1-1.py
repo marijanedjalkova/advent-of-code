@@ -4,6 +4,10 @@ from Day13.classes import Cart
 def tests():
     collisions = find_collisions("test-input.txt")
     assert 7, 3 == collisions
+    _, remaining_cart = find_collisions2("test-input2.txt")
+    assert 6 == remaining_cart[0].x
+    assert 4 == remaining_cart[0].y
+    assert 1 == len(remaining_cart)
 
 
 def is_cart(char):
@@ -29,10 +33,10 @@ def is_on_diagonal(cart, road_map):
 
 def get_road_of_direction(cart, road_map):
     switcher = {
-        "^": "\\" if road_map[cart.x + 1][cart.y] else "/",
-        "v": "/" if road_map[cart.x + 1][cart.y] else "\\",
-        "<": "\\" if road_map[cart.x][cart.y + 1] else "/",
-        ">": "/" if road_map[cart.x][cart.y + 1] else "\\"
+        "^": "\\" if cart.x + 1 in road_map and cart.y in road_map[cart.x + 1] else "/",
+        "v": "/" if cart.x + 1 in road_map and cart.y in road_map[cart.x + 1] else "\\",
+        "<": "\\" if cart.x in road_map and cart.y + 1 in road_map[cart.x] else "/",
+        ">": "/" if cart.x in road_map and cart.y + 1 in road_map[cart.x] else "\\"
     }
     if is_on_diagonal(cart, road_map):
         result = switcher[cart.direction]
@@ -51,6 +55,18 @@ def check_collision(carts):
             return cart.x, cart.y
         locations.add((cart.x, cart.y))
     return None
+
+
+def find_collision_carts(carts):
+    locations = {}
+    collisions = []
+    for cart in carts:
+        if (cart.x, cart.y) in locations:
+            collisions.append(cart)
+            collisions.append(locations[cart.x, cart.y])
+            print("COLLISION AT ", cart.x, cart.y)
+        locations[cart.x, cart.y] = cart
+    return collisions
 
 
 def tick(road_map, carts):
@@ -72,7 +88,7 @@ def read_in_input(filename):
                     road_map[col] = {}
                 road_map[col][row] = None
                 if is_cart(char):
-                    carts.append(Cart(col, row, char))
+                    carts.append(Cart(str(row+col), col, row, char))
                 elif char != " ":
                     road_map[col][row] = char
                 col += 1
@@ -98,7 +114,6 @@ def print_map(road_map, carts, max_x, max_y):
                 row += maybe_cart[0].direction
             elif len(maybe_cart) > 1:
                 row += "X"
-                msg = ("COLLISION AT ", col_pos, row_pos)
             elif road_char is None:
                 row += " "
             else:
@@ -113,23 +128,38 @@ def print_map(road_map, carts, max_x, max_y):
 def find_collisions(filename):
     road_map, carts, max_x, max_y = read_in_input(filename)
     place_carts(road_map, carts)
-    print_map(road_map, carts, max_x, max_y)
     collisions = None
-    counter = 0
     while collisions is None:
-        print(counter)
         tick(road_map, carts)
         collisions = check_collision(carts)
         if collisions:
             return collisions
-        counter += 1
     return collisions
+
+
+def find_collisions2(filename):
+    road_map, carts, max_x, max_y = read_in_input(filename)
+    place_carts(road_map, carts)
+    collided = None
+    while len(carts) > 1:
+        tick(road_map, carts)
+        collided = find_collision_carts(carts)
+        if len(collided) > 0:
+            for cart in collided:
+                carts.remove(cart)
+    return collided, carts
 
 
 def main():
     collisions = find_collisions("input.txt")
     print("Answer to part 1", collisions)
     assert 8, 9 == collisions
+    collisions, remaining_carts = find_collisions2("input.txt")
+    print(remaining_carts)
+    print(remaining_carts[0].route)
+    # not 138,74
+    # not 137,74
+    # not 139,74
 
 
 if __name__ == "__main__":

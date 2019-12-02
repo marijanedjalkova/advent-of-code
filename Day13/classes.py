@@ -1,14 +1,15 @@
 class Cart:
 
-    def __init__(self, x, y, direction):
+    def __init__(self, name, x, y, direction):
         self.x = x
         self.y = y
         self.direction = direction
         self.choice_counter = 0
         self.route = [(self.x, self.y)]
+        self.name = name
 
     def __repr__(self):
-        return "({},{}){}".format(self.x, self.y, self.direction)
+        return "{}:({},{}){}".format(self.name, self.x, self.y, self.direction)
 
     def turn(self, is_left):
         switcher = {
